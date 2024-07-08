@@ -49,8 +49,17 @@ struct ImageMetadata {
     } else {
         None
     };
+    
+    pub let bit_depth = if all_default {
+        bit_depth = BitDepth::new(8, 0); // 8 bits/channel integers
+    } else {
+        bit_depth = read!(struct BitDepth);
+    }
 }
 ```
+
+`ImageMetadata` also uses some techniques to encode common image types, as well as to optimise for small images (e.g. icons).
+- The `all_default` and `extra_fields` bools allow images with common image formats (XYZ encoded non-animated images without custom upscaling or colour transform parameters)
 
 ## Orientation
 
@@ -73,10 +82,33 @@ Note: The `orientation` field's value is interpreted the same as in `Exif versio
 
 !TODO
 
-
 ## struct `AnimationInfo`
 
 !TODO
 
-`ImageMetadata` also uses some techniques to encode common image types, as well as to optimise for small images (e.g. icons).
-- The `all_default` and `extra_fields` bools allow images with common image formats (XYZ encoded non-animated images without custom upscaling or colour transform parameters)
+## struct `BitDepth`
+
+```
+struct BitDepth {
+    let is_float = read!(Bool);
+
+    pub let bits = if is_float {
+        read!(U32(32, 16, 24, 1 + u(6)))
+    } else {
+        read!(U32(8, 10, 12, 1 + u(6)))
+    };
+
+    pub let exp_bits = if is_float {
+        1 + read!(u(4))
+    } else {
+        0
+    };
+}
+```
+
+This struct defines how Modular-encoded samples should be represented. It only applies for if `ImageMetadata::xyb_encoded` is `false`. 
+
+`exp_bits == 0` indicates image samples are represented as `bits`-bit integers.
+`exp_bits == 1` indicates image samples are represented as `bits`-bit floating point numbers in `IEEE 754` format.
+ - The format contains a 1 bit sign field, then a `exp_bits` exponent and a `bits - exp_bits - 1` mantissa.
+ - The exponent bias is `(1 << (exp_bits − 1)) − 1`.
