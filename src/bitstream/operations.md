@@ -77,3 +77,14 @@ Read an enum; see [Structs and Enums](./struct-enum.md#enums).
 ## `ZeroPadToByte`
 
 Read bits until it reaches byte boundary. Assert that bits are all zeroes.
+
+## `read_vec!(Type, count)`
+
+Read `count` of type `Type`
+```
+let mut output: Vec<Type> = Vec::new();
+for _ in 0..count {
+    output.push(read!(Type));
+}
+return output;
+```
