@@ -54,20 +54,26 @@ struct ImageMetadata {
         bit_depth = BitDepth::new(8, 0); // 8 bits/channel integers
     } else {
         bit_depth = read!(struct BitDepth);
-    }
+    };
 
     pub let modular_16bit_sufficient = if all_default {
         true
     } else {
         read!(Bool)
-    }
+    };
 
     let extra_channel_count = if all_default {
         0
     } else {
         read!(U32(0, 1, 2 + u(4), 1 + u(12)))
-    }
+    };
     pub let extra_channel_info = read_vec!(struct ExtraChannelInfo, extra_channel_count);
+
+    pub let xyb_encoded = if all_default {
+        true
+    } else {
+        read!(Bool)
+    };    
 }
 ```
 
